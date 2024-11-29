@@ -235,7 +235,7 @@ export function shorthandToHTML (
     return `<!--${shorthand.target} ${shorthand.data}-->`
   }
   if ('name' in shorthand && 'value' in shorthand) {
-    return `${shorthand.name}="${shorthand.value}"`
+    return `${shorthand.name}="${String(shorthand.value)}"`
   }
   return ''
 }
