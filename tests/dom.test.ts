@@ -9,7 +9,8 @@ import {
 } from '../src/dom/dom-nodes'
 import {
   DOMDescriptionToShorthand,
-  shorthandToDOMDescription
+  shorthandToDOMDescription,
+  shorthandToHTML
 } from '../src/dom/dom-shorthands'
 
 const sampleDescriptions = {
@@ -116,9 +117,10 @@ describe("createDescribedNode", () => {
     expect(node).toBeDefined()
     if (node != null) {
       expect(node.nodeName).toEqual('DIV')
-      expect(node.attributes.get('class')).toEqual('main')
+      const element = node as HTMLElement
+      expect(element.getAttribute('class')).toEqual('main')
       expect(node.childNodes.length).toEqual(1)
-      expect(node.innnerHTML).toEqual(sampleDescriptions.text)
+      expect(element.innerHTML).toEqual(sampleDescriptions.text.nodeValue)
     }
   })
 })
@@ -199,5 +201,50 @@ describe("shorthandToDOMDescription", () => {
   it("should convert targetted data to processing instruction nodes", () => {
     const shorthand = shorthandToDOMDescription(sampleShorthands.instruction)
     expect(shorthand).toEqual(sampleDescriptions.instruction)
+  })
+})
+
+describe("shorthandToHTML", () => {
+  it("should handle elements, as well as their attributes and children", () => {
+    const html = shorthandToHTML({
+      tag: 'p',
+      attributes: {
+        class: "main"
+      },
+      content: [
+        { comment: "testing" },
+        "Be ",
+        {
+          tag: 'b',
+          content: ["bold"]
+        }
+      ]
+    })
+    expect(html).toBe(`<p class="main"><!--testing-->Be <b>bold</b></p>`)
+  })
+  it("should wrap cdata", () => {
+    const html = shorthandToHTML({
+      cData: "< > &"
+    })
+    expect(html).toBe(`<![CDATA[ < > & ]]>`)
+  })
+  it("should handle fragments", () => {
+    const html = shorthandToHTML({
+      content: [
+        "Be ",
+        {
+          tag: 'b',
+          content: ["bold"]
+        }
+      ]
+    })
+    expect(html).toBe(`Be <b>bold</b>`)
+  })
+  it("should treat processing instructions as comments", () => {
+    const html = shorthandToHTML({
+      target: 'xml',
+      data: `version="1.0"`
+    })
+    expect(html).toBe(`<!--xml version="1.0"-->`)
   })
 })

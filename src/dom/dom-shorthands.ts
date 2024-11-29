@@ -190,6 +190,57 @@ export function shorthandToDOMDescription (
 }
 
 /**
+ * Converts an abbreviated DOM Node description to HTML text.
+ * @function
+ * @param {DOMNodeShorthand} shorthand - abbreviated description to be converted
+ * @returns {string} resulting html
+ */
+export function shorthandToHTML (
+  shorthand: DOMNodeShorthand
+): string {
+  if (typeof shorthand === 'string') {
+    return shorthand
+  }
+  if ('tag' in shorthand) {
+    let html = `<${shorthand.tag}`
+    if ('attributes' in shorthand) {
+      for (const key in shorthand.attributes) {
+        const value = shorthand.attributes[key]
+        html += ` ${key}="${value}"`
+      }
+    }
+    html += '>'
+    if ('content' in shorthand && shorthand.content != null) {
+      for (const item of shorthand.content) {
+        html += shorthandToHTML(item)
+      }
+    }
+    html += `</${shorthand.tag}>`
+    return html
+  }
+  if ('content' in shorthand && shorthand.content != null) {
+    let html = ''
+    for (const item of shorthand.content) {
+      html += shorthandToHTML(item)
+    }
+    return html
+  }
+  if ('comment' in shorthand) {
+    return `<!--${shorthand.comment}-->`
+  }
+  if ('cData' in shorthand) {
+    return `<![CDATA[ ${shorthand.cData} ]]>`
+  }
+  if ('target' in shorthand && 'data' in shorthand) {
+    return `<!--${shorthand.target} ${shorthand.data}-->`
+  }
+  if ('name' in shorthand && 'value' in shorthand) {
+    return `${shorthand.name}="${shorthand.value}"`
+  }
+  return ''
+}
+
+/**
  * Tries to retrieve and convert the contents of a DOM Node shorthand to their expanded forms.
  * @function
  * @param {DOMElementShorthand | DOMFragmentShorthand} desciption - node shorthand that can have contents

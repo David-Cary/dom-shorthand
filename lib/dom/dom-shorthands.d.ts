@@ -78,6 +78,13 @@ export declare function addChildNodesToShorthand(description: DOMNodeDescription
  */
 export declare function shorthandToDOMDescription(shorthand: DOMNodeShorthand): DOMNodeDescription;
 /**
+ * Converts an abbreviated DOM Node description to HTML text.
+ * @function
+ * @param {DOMNodeShorthand} shorthand - abbreviated description to be converted
+ * @returns {string} resulting html
+ */
+export declare function shorthandToHTML(shorthand: DOMNodeShorthand): string;
+/**
  * Tries to retrieve and convert the contents of a DOM Node shorthand to their expanded forms.
  * @function
  * @param {DOMElementShorthand | DOMFragmentShorthand} desciption - node shorthand that can have contents
