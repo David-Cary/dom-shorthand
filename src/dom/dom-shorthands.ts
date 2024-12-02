@@ -209,13 +209,15 @@ export function shorthandToHTML (
         html += ` ${key}="${value}"`
       }
     }
-    html += '>'
     if ('content' in shorthand && shorthand.content != null) {
+      html += '>'
       for (const item of shorthand.content) {
         html += shorthandToHTML(item)
       }
+      html += `</${shorthand.tag}>`
+    } else {
+      html += '/>'
     }
-    html += `</${shorthand.tag}>`
     return html
   }
   if ('content' in shorthand && shorthand.content != null) {

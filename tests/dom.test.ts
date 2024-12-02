@@ -240,6 +240,17 @@ describe("shorthandToHTML", () => {
     })
     expect(html).toBe(`Be <b>bold</b>`)
   })
+  it("should only use a single set of brackets for elements without content, like BR", () => {
+    const html = shorthandToHTML({
+      content: [
+        "1 line",
+        {
+          tag: 'br'
+        }
+      ]
+    })
+    expect(html).toBe(`1 line<br/>`)
+  })
   it("should treat processing instructions as comments", () => {
     const html = shorthandToHTML({
       target: 'xml',
