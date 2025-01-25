@@ -62,3 +62,5 @@ The following short hands are currently supported.  These cover all types of nod
 Should you need it, there's also a `validateDOMShorthand` function to check if any unknown value matches at least 1 of these shorthand profiles.  There are also dedicated functions to create descriptions for specific node types from a set of parameters.  These are less flexible that using `shorthandToDOMDescription`, but can be faster if you already know what type of node you want (ex. `createElementDescription('DIV')`).
 
 As of version 1.1.0, we've added a `shorthandToHTML` function so you don't need the overhead of creating nodes to get the html.
+
+In version 1.2.0, that's joined by `setChildNodesFromDescriptions`.  As the name suggests, that lets you populate the children of a target node from an array of child descriptions.  This can be useful if you want to make alterations to a selection without outright replacing the target nodes.

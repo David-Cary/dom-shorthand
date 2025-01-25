@@ -5,7 +5,8 @@ import {
   NodeType,
   describeNode,
   createDescribedNode,
-  createTextNodeDescription
+  createTextNodeDescription,
+  setChildNodesFromDescriptions
 } from '../src/dom/dom-nodes'
 import {
   DOMDescriptionToShorthand,
@@ -257,5 +258,65 @@ describe("shorthandToHTML", () => {
       data: `version="1.0"`
     })
     expect(html).toBe(`<!--xml version="1.0"-->`)
+  })
+})
+
+describe("setChildNodesFromDescriptions", () => {
+  const block = document.createElement('div')
+  it("should remove excess children", () => {
+    block.innerHTML = "a<b>b</b>c"
+    const node = setChildNodesFromDescriptions(
+      block,
+      [
+        { nodeType: NodeType.TEXT_NODE, nodeName: '#text', nodeValue: '1' }
+      ]
+    )
+    expect(block.innerHTML).toBe('1')
+  })
+  it("should set child attributes", () => {
+    block.innerHTML = '<img name="a" src="x">'
+    const node = setChildNodesFromDescriptions(
+      block,
+      [
+        {
+          nodeType: NodeType.ELEMENT_NODE,
+          nodeName: 'IMG',
+          attributes: { src: 'y' }
+        }
+      ]
+    )
+    expect(block.innerHTML).toBe('<img src="y">')
+  })
+  it("should apply to nested descendants", () => {
+    block.innerHTML = '<b>a</b>'
+    const node = setChildNodesFromDescriptions(
+      block,
+      [
+        {
+          nodeType: NodeType.ELEMENT_NODE,
+          nodeName: 'B',
+          childNodes: [
+            { nodeType: NodeType.TEXT_NODE, nodeName: '#text', nodeValue: '1' }
+          ]
+        }
+      ]
+    )
+    expect(block.innerHTML).toBe('<b>1</b>')
+  })
+  it("should replace child with different node names", () => {
+    block.innerHTML = '<b>a</b>'
+    const node = setChildNodesFromDescriptions(
+      block,
+      [
+        {
+          nodeType: NodeType.ELEMENT_NODE,
+          nodeName: 'U',
+          childNodes: [
+            { nodeType: NodeType.TEXT_NODE, nodeName: '#text', nodeValue: '1' }
+          ]
+        }
+      ]
+    )
+    expect(block.innerHTML).toBe('<u>1</u>')
   })
 })

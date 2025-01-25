@@ -145,3 +145,10 @@ export declare function createProcessingInstructionDescription(target: string, d
  * @returns {DOMNodeDescription} resulting description
  */
 export declare function createFragmentDescription(childNodes?: DOMNodeDescription[]): DOMNodeDescription;
+/**
+ * Sets the child nodes of the target node to match the provided descriptions.
+ * @function
+ * @param {Node} node - node whose children are to be modified
+ * @param {DOMNodeDescription[] | undefined} descriptions - covers the desired state of the node's children
+ */
+export declare function setChildNodesFromDescriptions(node: Node, descriptions: DOMElementDescription[]): void;

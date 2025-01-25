@@ -325,3 +325,51 @@ export function createFragmentDescription (
   }
   return description
 }
+
+/**
+ * Sets the child nodes of the target node to match the provided descriptions.
+ * @function
+ * @param {Node} node - node whose children are to be modified
+ * @param {DOMNodeDescription[] | undefined} descriptions - covers the desired state of the node's children
+ */
+export function setChildNodesFromDescriptions (
+  node: Node,
+  descriptions: DOMElementDescription[]
+): void {
+  while (node.childNodes.length > descriptions.length) {
+    const child = node.lastChild
+    if (child != null) node.removeChild(child)
+    else break
+  }
+  for (let i = 0; i < descriptions.length; i++) {
+    const description = descriptions[i]
+    const child = node.childNodes.item(i)
+    if (child?.nodeName === description.nodeName) {
+      if (child instanceof CharacterData) {
+        child.data = description.nodeValue ?? ''
+      } else {
+        if (child instanceof Element) {
+          const attributes = description.attributes ?? {}
+          const childAttributeNames = child.getAttributeNames()
+          for (const name of childAttributeNames) {
+            if (name in attributes) continue
+            child.removeAttribute(name)
+          }
+          setElementAttributes(child, attributes)
+        }
+        if (description.childNodes != null) {
+          setChildNodesFromDescriptions(child, description.childNodes)
+        }
+      }
+    } else {
+      const replacement = createDescribedNode(description)
+      if (replacement != null) {
+        if (child != null) {
+          node.replaceChild(replacement, child)
+        } else {
+          node.appendChild(replacement)
+        }
+      }
+    }
+  }
+}
