@@ -185,7 +185,9 @@ export function setElementAttributes (
 ): void {
   for (const key in values) {
     const value = values[key]
-    element.setAttribute(key, value)
+    if (element.getAttribute(key) !== value) {
+      element.setAttribute(key, value)
+    }
   }
 }
 
@@ -346,7 +348,10 @@ export function setChildNodesFromDescriptions (
     const child = node.childNodes.item(i)
     if (child?.nodeName === description.nodeName) {
       if (child instanceof CharacterData) {
-        child.data = description.nodeValue ?? ''
+        const data = description.nodeValue ?? ''
+        if (child.data !== data) {
+          child.data = data
+        }
       } else {
         if (child instanceof Element) {
           const attributes = description.attributes ?? {}
