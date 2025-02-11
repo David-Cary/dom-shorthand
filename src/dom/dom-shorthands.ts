@@ -101,7 +101,11 @@ export function DOMDescriptionToShorthand (
         tag: description.nodeName ?? ''
       }
       if ('attributes' in description && description.attributes != null) {
-        shorthand.attributes = { ...description.attributes }
+        // Only create an attribute object if it's not empty.
+        for (const key in description.attributes) {
+          shorthand.attributes = { ...description.attributes }
+          break
+        }
       }
       addChildNodesToShorthand(description, shorthand)
       return shorthand

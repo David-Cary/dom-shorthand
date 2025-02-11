@@ -29,6 +29,18 @@ const sampleDescriptions = {
       }
     ]
   },
+  emptyAttributeElement: {
+    nodeType: NodeType.ELEMENT_NODE,
+    nodeName: 'P',
+    attributes: {},
+    childNodes: [
+      {
+        nodeType: NodeType.TEXT_NODE,
+        nodeName: '#text',
+        nodeValue: 'Hi!'
+      }
+    ]
+  },
   attribute: {
     nodeType: NodeType.ATTRIBUTE_NODE,
     nodeName: 'id',
@@ -134,6 +146,10 @@ const sampleShorthands = {
     },
     content: [ sampleDescriptions.text.nodeValue ]
   },
+  emptyAttributeElement: {
+    tag: 'P',
+    content: [ sampleDescriptions.text.nodeValue ]
+  },
   attribute: {
     name: 'id',
     value: 'me'
@@ -159,6 +175,10 @@ describe("DOMDescriptionToShorthand", () => {
   it("should convert element nodes to tagged data", () => {
     const shorthand = DOMDescriptionToShorthand(sampleDescriptions.element)
     expect(shorthand).toEqual(sampleShorthands.element)
+  })
+  it("should skip adding attributes if there are no attributes", () => {
+    const shorthand = DOMDescriptionToShorthand(sampleDescriptions.emptyAttributeElement)
+    expect(shorthand).toEqual(sampleShorthands.emptyAttributeElement)
   })
   it("should convert attribute nodes to name value pairs", () => {
     const shorthand = DOMDescriptionToShorthand(sampleDescriptions.attribute)
