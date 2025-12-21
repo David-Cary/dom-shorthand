@@ -28,7 +28,7 @@ export interface DOMNodeDescription {
   nodeType: NodeType
   nodeName?: string
   nodeValue?: string | null
-  childNodes?: DOMNodeDescription[]
+  childNodes?: DOMElementDescription[]
 }
 
 /**
@@ -329,10 +329,179 @@ export function createFragmentDescription (
 }
 
 /**
+ * Checks if am attribute map matches the provided description.
+ * @function
+ * @param {NamedNodeMap} attributes - attributes to be evaluated
+ * @param {Record<string, string>} description - required values
+ * @returns {boolean}
+ */
+export function attributesMatchDescription (
+  attributes: NamedNodeMap,
+  description: Record<string, string>
+): boolean {
+  let count = 0
+  for (const key in description) {
+    const attribute = attributes.getNamedItem(key)
+    if (attribute != null && description[key] === attribute.value) {
+      count++
+    } else return false
+  }
+  return attributes.length === count
+}
+
+/**
+ * Checks if a node's properties and children match the provided description.
+ * @function
+ * @param {Node} node - node to be evaluated
+ * @param {DOMElementDescription} description - required values
+ * @returns {boolean}
+ */
+export function nodeMatchesDescription (
+  node: Node,
+  description: DOMElementDescription
+): boolean {
+  if (node.nodeType !== description.nodeType) return false
+  if (
+    description.nodeName != null &&
+    node.nodeName !== description.nodeName
+  ) return false
+  if (
+    description.nodeValue != null &&
+    node.nodeValue !== description.nodeValue
+  ) return false
+  if (node instanceof Element) {
+    const describedAttributes = description.attributes ?? {}
+    const attributesMatch = attributesMatchDescription(node.attributes, describedAttributes)
+    if (!attributesMatch) return false
+  } else if (description.attributes != null) return false
+  const describedChildren = description.childNodes ?? []
+  const childrenMatch = nodeListMatchesDescription(node.childNodes, describedChildren)
+  return childrenMatch
+}
+
+/**
+ * Checks if a node list's contents match the provided description.
+ * @function
+ * @param {Node} node - nodes to be evaluated
+ * @param {DOMElementDescription[]} description - required values
+ * @returns {boolean}
+ */
+export function nodeListMatchesDescription (
+  nodes: NodeList,
+  descriptions: DOMElementDescription[]
+): boolean {
+  for (let i = 0; i < descriptions.length; i++) {
+    const node = nodes.item(i)
+    if (node != null) {
+      const matched = nodeMatchesDescription(node, descriptions[i])
+      if (matched) continue
+    }
+    return false
+  }
+  return nodes.length === descriptions.length
+}
+
+/**
+ * Checks if two values have matching properties.
+ * @function
+ * @param {any} first - first value to be evaluated
+ * @param {any} second - second value to be evaluated
+ * @returns {boolean}
+ */
+export function checkEquivalence (
+  first: any,
+  second: any
+): boolean {
+  if (typeof first === 'object' && first != null) {
+    if (typeof second === 'object' && second != null) {
+      if (Array.isArray(first)) {
+        if (Array.isArray(second)) {
+          for (let i = 0; i < first.length; i++) {
+            const matched = checkEquivalence(first[i], second[i])
+            if (!matched) return false
+          }
+          return first.length === second.length
+        }
+        return false
+      }
+      for (const key in first) {
+        const matched = checkEquivalence(first[key], second[key])
+        if (!matched) return false
+      }
+      for (const key in second) {
+        if (key in first) continue
+        return false
+      }
+      return true
+    }
+    return false
+  }
+  return first === second
+}
+
+/**
+ * Sets the child nodes of the target node to match the provided descriptions.
+ * @function
+ * @param {NamedNodeMap} attributes - attributes to be modified
+ * @param {Record<string, string>} description - required values
+ */
+export function applyDescribedAttributeChanges (
+  attributes: NamedNodeMap,
+  description: Record<string, string>
+): void {
+  for (const key in description) {
+    const attribute = attributes.getNamedItem(key)
+    const value = description[key]
+    if (attribute == null) {
+      const newAttribute = document.createAttribute(key)
+      newAttribute.value = value
+      attributes.setNamedItem(newAttribute)
+    } else if (attribute.value !== value) {
+      attribute.value = value
+    }
+  }
+  for (let i = 0; i < attributes.length; i++) {
+    const attribute = attributes.item(i)
+    if (attribute == null || attribute.name in description) continue
+    attributes.removeNamedItem(attribute.name)
+  }
+}
+
+/**
+ * Sets the node's properties and children based on the provided description.
+ * @function
+ * @param {Node} node - node to be modified
+ * @param {DOMNodeDescription[] | undefined} description - covers the desired state of the node
+ * @returns {Node | undefined} if a new node had to created, that will be returned
+ */
+export function applyDescribedNodeChanges (
+  node: Node,
+  description: DOMElementDescription
+): Node | undefined {
+  if (node.nodeName === description.nodeName) {
+    if (node instanceof CharacterData) {
+      const data = description.nodeValue
+      if (data != null && node.data !== data) {
+        node.data = data
+      }
+    }
+    if (node instanceof Element && description.attributes != null) {
+      applyDescribedAttributeChanges(node.attributes, description.attributes)
+    }
+    if (description.childNodes != null) {
+      setChildNodesFromDescriptions(node, description.childNodes)
+    }
+    return node
+  }
+  const replacement = createDescribedNode(description)
+  return replacement
+}
+
+/**
  * Sets the child nodes of the target node to match the provided descriptions.
  * @function
  * @param {Node} node - node whose children are to be modified
- * @param {DOMNodeDescription[] | undefined} descriptions - covers the desired state of the node's children
+ * @param {DOMNodeDescription[]} descriptions - covers the desired state of the node's children
  */
 export function setChildNodesFromDescriptions (
   node: Node,
@@ -346,35 +515,14 @@ export function setChildNodesFromDescriptions (
   for (let i = 0; i < descriptions.length; i++) {
     const description = descriptions[i]
     const child = node.childNodes.item(i)
-    if (child?.nodeName === description.nodeName) {
-      if (child instanceof CharacterData) {
-        const data = description.nodeValue ?? ''
-        if (child.data !== data) {
-          child.data = data
-        }
-      } else {
-        if (child instanceof Element) {
-          const attributes = description.attributes ?? {}
-          const childAttributeNames = child.getAttributeNames()
-          for (const name of childAttributeNames) {
-            if (name in attributes) continue
-            child.removeAttribute(name)
-          }
-          setElementAttributes(child, attributes)
-        }
-        if (description.childNodes != null) {
-          setChildNodesFromDescriptions(child, description.childNodes)
-        }
+    if (child != null) {
+      const updatedChild = applyDescribedNodeChanges(child, description)
+      if (updatedChild != null && child !== updatedChild) {
+        node.replaceChild(updatedChild, child)
       }
     } else {
-      const replacement = createDescribedNode(description)
-      if (replacement != null) {
-        if (child != null) {
-          node.replaceChild(replacement, child)
-        } else {
-          node.appendChild(replacement)
-        }
-      }
+      const newChild = createDescribedNode(description)
+      if (newChild != null) node.appendChild(newChild)
     }
   }
 }

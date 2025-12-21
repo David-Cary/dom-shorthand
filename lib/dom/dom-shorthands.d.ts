@@ -92,9 +92,39 @@ export declare function shorthandToHTML(shorthand: DOMNodeShorthand): string;
  */
 export declare function getShorthandContentDescription(shorthand: DOMElementShorthand | DOMFragmentShorthand): DOMNodeDescription[] | undefined;
 /**
+ * Tries to build the shorthand for the provided node.
+ * @function
+ * @param {Node} source - node to be evaluated
+ * @returns {DOMNodeShorthand | undefined}
+ */
+export declare function getNodeShorthand(source: Node): DOMNodeShorthand | undefined;
+/**
+ * Tries to build the shorthands for the provided node's children.
+ * @function
+ * @param {Node} source - node to be evaluated
+ * @returns {DOMNodeShorthand[]}
+ */
+export declare function getNodeContentShorthands(source: Node): DOMNodeShorthand[];
+/**
  * Tries to cast the provided data to an appropriate DOM Node shorthand.
  * @function
  * @param {unknown} target - data to be recast
  * @returns {DOMNodeShorthand | undefined} provided target if valid or undefined if invalid
  */
 export declare function validateDOMShorthand(target: unknown): DOMNodeShorthand | undefined;
+/**
+ * Sets the node's properties and children based on the provided shorthand.
+ * @function
+ * @param {Node} node - node to be modified
+ * @param {DOMNodeShorthand} shorthand - covers the desired state of the node
+ * @returns {Node | undefined} if a new node had to created, that will be returned
+ */
+export declare function applyNodeChangeShorthand(node: Node, shorthand: DOMNodeShorthand): Node | undefined;
+/**
+ * Tries to update the node's children from the provided shorthands.
+ * @function
+ * @param {Node} node - node whose children are to be modified
+ * @param {DOMNodeShorthand} descriptions - covers the desired state of the node's children
+ * @returns {DOMElementDescription[]}
+ */
+export declare function setNodeContentFromShorthands(target: Node, shorthands: DOMNodeShorthand[]): DOMElementDescription[];

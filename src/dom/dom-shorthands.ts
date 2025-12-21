@@ -8,7 +8,11 @@ import {
   createCDataDescription,
   createProcessingInstructionDescription,
   createCommentDescription,
-  createFragmentDescription
+  createFragmentDescription,
+  describeNode,
+  describeNodeList,
+  applyDescribedNodeChanges,
+  setChildNodesFromDescriptions
 } from './dom-nodes'
 
 /**
@@ -102,9 +106,8 @@ export function DOMDescriptionToShorthand (
       }
       if ('attributes' in description && description.attributes != null) {
         // Only create an attribute object if it's not empty.
-        for (const key in description.attributes) {
+        if (Object.keys(description.attributes).length > 0) {
           shorthand.attributes = { ...description.attributes }
-          break
         }
       }
       addChildNodesToShorthand(description, shorthand)
@@ -268,6 +271,36 @@ export function getShorthandContentDescription (
 }
 
 /**
+ * Tries to build the shorthand for the provided node.
+ * @function
+ * @param {Node} source - node to be evaluated
+ * @returns {DOMNodeShorthand | undefined}
+ */
+export function getNodeShorthand (
+  source: Node
+): DOMNodeShorthand | undefined {
+  const description = describeNode(source)
+  const shorthand = DOMDescriptionToShorthand(description)
+  return shorthand
+}
+
+/**
+ * Tries to build the shorthands for the provided node's children.
+ * @function
+ * @param {Node} source - node to be evaluated
+ * @returns {DOMNodeShorthand[]}
+ */
+export function getNodeContentShorthands (
+  source: Node
+): DOMNodeShorthand[] {
+  const descriptions = describeNodeList(source.childNodes)
+  const shorthands = descriptions
+    .map(item => DOMDescriptionToShorthand(item))
+    .filter(item => item != null) as DOMNodeShorthand[]
+  return shorthands
+}
+
+/**
  * Tries to cast the provided data to an appropriate DOM Node shorthand.
  * @function
  * @param {unknown} target - data to be recast
@@ -306,4 +339,36 @@ export function validateDOMShorthand (target: unknown): DOMNodeShorthand | undef
       break
     }
   }
+}
+
+/**
+ * Sets the node's properties and children based on the provided shorthand.
+ * @function
+ * @param {Node} node - node to be modified
+ * @param {DOMNodeShorthand} shorthand - covers the desired state of the node
+ * @returns {Node | undefined} if a new node had to created, that will be returned
+ */
+export function applyNodeChangeShorthand (
+  node: Node,
+  shorthand: DOMNodeShorthand
+): Node | undefined {
+  const description = shorthandToDOMDescription(shorthand)
+  const updatedNode = applyDescribedNodeChanges(node, description)
+  return updatedNode
+}
+
+/**
+ * Tries to update the node's children from the provided shorthands.
+ * @function
+ * @param {Node} node - node whose children are to be modified
+ * @param {DOMNodeShorthand} descriptions - covers the desired state of the node's children
+ * @returns {DOMElementDescription[]}
+ */
+export function setNodeContentFromShorthands (
+  target: Node,
+  shorthands: DOMNodeShorthand[]
+): DOMElementDescription[] {
+  const descriptions = shorthands.map(shorthand => shorthandToDOMDescription(shorthand))
+  setChildNodesFromDescriptions(target, descriptions)
+  return descriptions
 }

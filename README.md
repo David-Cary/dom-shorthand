@@ -64,3 +64,14 @@ Should you need it, there's also a `validateDOMShorthand` function to check if a
 As of version 1.1.0, we've added a `shorthandToHTML` function so you don't need the overhead of creating nodes to get the html.
 
 In version 1.2.0, that's joined by `setChildNodesFromDescriptions`.  As the name suggests, that lets you populate the children of a target node from an array of child descriptions.  This can be useful if you want to make alterations to a selection without outright replacing the target nodes.
+
+Version 1.3.0 adds the following functions:
+ - `nodeMatchesDescription` checks if the node's properties and child match the provided node description.  This can be used for change detection by taking a snapshot of the node via `describeNode` and comparing it to the current node state.
+ - `nodeListMatchesDescription` lets you do the above for a node list, such as a node's children.
+ - `attributesMatchDescription` lets you do the same for a node's attributes.
+ - `checkEquivalence` returns false if any of the nested properties of two values are different.  This allows for change detection after a snapshot of the new state has been taken.
+ - `applyDescribedNodeChanges` expends on `setChildNodesFromDescriptions` by also modifying the attributes.  Should the node have a different node name than the description, this instead returns a new node as per `createDescribedNode`.
+ - `applyNodeChangeShorthand` does the above but lets you use a shorthand instead of a full node description.
+ - `setNodeContentFromShorthands` likewise mirrors `setChildNodesFromDescriptions` but allows use of shorthands in place of descriptions.
+ - `getNodeShorthand` returns the shorthand for the target node.
+ - `getNodeContentShorthands` returns shorthands for the target node's children.

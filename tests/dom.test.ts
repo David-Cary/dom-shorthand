@@ -4,8 +4,10 @@
 import {
   NodeType,
   describeNode,
+  checkEquivalence,
   createDescribedNode,
   createTextNodeDescription,
+  nodeMatchesDescription,
   setChildNodesFromDescriptions
 } from '../src/dom/dom-nodes'
 import {
@@ -338,5 +340,128 @@ describe("setChildNodesFromDescriptions", () => {
       ]
     )
     expect(block.innerHTML).toBe('<u>1</u>')
+  })
+})
+
+describe("nodeMatchesDescription", () => {
+  const block = document.createElement('div')
+  const text = document.createTextNode('Hi')
+  it("should detect nodeType change", () => {
+    const matched = nodeMatchesDescription(text, { nodeType: NodeType.COMMENT_NODE })
+    expect(matched).toBe(false)
+  })
+  it("should detect nodeValue change", () => {
+    const matched = nodeMatchesDescription(
+      text,
+      {
+        nodeType: NodeType.TEXT_NODE,
+        nodeValue: 'bye'
+      }
+    )
+    expect(matched).toBe(false)
+  })
+  it("should verify matching text node", () => {
+    const matched = nodeMatchesDescription(
+      text,
+      {
+        nodeType: NodeType.TEXT_NODE,
+        nodeValue: 'Hi'
+      }
+    )
+    expect(matched).toBe(true)
+  })
+  it("should detect missing attribute", () => {
+    const matched = nodeMatchesDescription(
+      text,
+      {
+        nodeType: NodeType.ELEMENT_NODE,
+        attributes: { class: 'main' }
+      }
+    )
+    expect(matched).toBe(false)
+  })
+  const paragraph = document.createElement('p')
+  paragraph.setAttribute('class', 'main')
+  block.appendChild(paragraph)
+  paragraph.appendChild(text)
+  it("should detect child changes", () => {
+    const matched = nodeMatchesDescription(
+      text,
+      {
+        nodeType: NodeType.ELEMENT_NODE,
+        childNodes: [
+          {
+            nodeType: NodeType.ELEMENT_NODE,
+            attributes: { class: 'body' }
+          }
+        ]
+      }
+    )
+    expect(matched).toBe(false)
+  })
+  it("should verify element with children", () => {
+    const matched = nodeMatchesDescription(
+      block,
+      {
+        nodeType: NodeType.ELEMENT_NODE,
+        nodeName: 'DIV',
+        childNodes: [
+          {
+            nodeType: NodeType.ELEMENT_NODE,
+            nodeName: 'P',
+            attributes: { class: 'main' },
+            childNodes: [
+              {
+                nodeType: NodeType.TEXT_NODE,
+                nodeValue: 'Hi'
+              }
+            ]
+          }
+        ]
+      }
+    )
+    expect(matched).toBe(true)
+  })
+})
+
+describe("checkEquivalence", () => {
+  it("should do direct comparison on primitives", () => {
+    const badMatch = checkEquivalence(1, 2)
+    expect(badMatch).toEqual(false)
+    const goodMatch = checkEquivalence(1, 1)
+    expect(goodMatch).toEqual(true)
+  })
+  it("should detect object mismatch", () => {
+    const matched = checkEquivalence([1], { value: 1 })
+    expect(matched).toEqual(false)
+  })
+  it("should detect element mismatch", () => {
+    const matched = checkEquivalence([1, 2], [1, 3])
+    expect(matched).toEqual(false)
+  })
+  it("should detect property mismatch", () => {
+    const matched = checkEquivalence({ x: 1, y: 1 }, { x: 1, y: 2})
+    expect(matched).toEqual(false)
+  })
+  it("should validate equivalent objects", () => {
+    const matched = checkEquivalence(
+      {
+        name: 'bin',
+        contents: [
+          {
+            name: 'hat'
+          }
+        ]
+      },
+      {
+        name: 'bin',
+        contents: [
+          {
+            name: 'hat'
+          }
+        ]
+      }
+    )
+    expect(matched).toEqual(true)
   })
 })

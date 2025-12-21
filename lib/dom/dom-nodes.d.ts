@@ -27,7 +27,7 @@ export interface DOMNodeDescription {
     nodeType: NodeType;
     nodeName?: string;
     nodeValue?: string | null;
-    childNodes?: DOMNodeDescription[];
+    childNodes?: DOMElementDescription[];
 }
 /**
  * This covers the additional properties a element node may have.
@@ -146,9 +146,56 @@ export declare function createProcessingInstructionDescription(target: string, d
  */
 export declare function createFragmentDescription(childNodes?: DOMNodeDescription[]): DOMNodeDescription;
 /**
+ * Checks if am attribute map matches the provided description.
+ * @function
+ * @param {NamedNodeMap} attributes - attributes to be evaluated
+ * @param {Record<string, string>} description - required values
+ * @returns {boolean}
+ */
+export declare function attributesMatchDescription(attributes: NamedNodeMap, description: Record<string, string>): boolean;
+/**
+ * Checks if a node's properties and children match the provided description.
+ * @function
+ * @param {Node} node - node to be evaluated
+ * @param {DOMElementDescription} description - required values
+ * @returns {boolean}
+ */
+export declare function nodeMatchesDescription(node: Node, description: DOMElementDescription): boolean;
+/**
+ * Checks if a node list's contents match the provided description.
+ * @function
+ * @param {Node} node - nodes to be evaluated
+ * @param {DOMElementDescription[]} description - required values
+ * @returns {boolean}
+ */
+export declare function nodeListMatchesDescription(nodes: NodeList, descriptions: DOMElementDescription[]): boolean;
+/**
+ * Checks if two values have matching properties.
+ * @function
+ * @param {any} first - first value to be evaluated
+ * @param {any} second - second value to be evaluated
+ * @returns {boolean}
+ */
+export declare function checkEquivalence(first: any, second: any): boolean;
+/**
+ * Sets the child nodes of the target node to match the provided descriptions.
+ * @function
+ * @param {NamedNodeMap} attributes - attributes to be modified
+ * @param {Record<string, string>} description - required values
+ */
+export declare function applyDescribedAttributeChanges(attributes: NamedNodeMap, description: Record<string, string>): void;
+/**
+ * Sets the node's properties and children based on the provided description.
+ * @function
+ * @param {Node} node - node to be modified
+ * @param {DOMNodeDescription[] | undefined} description - covers the desired state of the node
+ * @returns {Node | undefined} if a new node had to created, that will be returned
+ */
+export declare function applyDescribedNodeChanges(node: Node, description: DOMElementDescription): Node | undefined;
+/**
  * Sets the child nodes of the target node to match the provided descriptions.
  * @function
  * @param {Node} node - node whose children are to be modified
- * @param {DOMNodeDescription[] | undefined} descriptions - covers the desired state of the node's children
+ * @param {DOMNodeDescription[]} descriptions - covers the desired state of the node's children
  */
 export declare function setChildNodesFromDescriptions(node: Node, descriptions: DOMElementDescription[]): void;
