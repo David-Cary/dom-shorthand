@@ -3,6 +3,7 @@
  */
 import {
   NodeType,
+  applyDescribedNodeChanges,
   describeNode,
   checkEquivalence,
   createDescribedNode,
@@ -308,6 +309,19 @@ describe("setChildNodesFromDescriptions", () => {
       ]
     )
     expect(block.innerHTML).toBe('<img src="y">')
+  })
+  it("should clear attributes if those are not provided", () => {
+    block.innerHTML = '<p name="Intro">Hi</p>'
+    const node = setChildNodesFromDescriptions(
+      block,
+      [
+        {
+          nodeType: NodeType.ELEMENT_NODE,
+          nodeName: 'P'
+        }
+      ]
+    )
+    expect(block.innerHTML).toBe('<p>Hi</p>')
   })
   it("should apply to nested descendants", () => {
     block.innerHTML = '<b>a</b>'

@@ -368,7 +368,9 @@ export function setNodeContentFromShorthands (
   target: Node,
   shorthands: DOMNodeShorthand[]
 ): DOMElementDescription[] {
-  const descriptions = shorthands.map(shorthand => shorthandToDOMDescription(shorthand))
+  const descriptions = shorthands
+    .map(shorthand => shorthandToDOMDescription(shorthand))
+    .filter(item => item != null)
   setChildNodesFromDescriptions(target, descriptions)
   return descriptions
 }

@@ -485,8 +485,9 @@ export function applyDescribedNodeChanges (
         node.data = data
       }
     }
-    if (node instanceof Element && description.attributes != null) {
-      applyDescribedAttributeChanges(node.attributes, description.attributes)
+    if (node instanceof Element) {
+      const attributes = description.attributes ?? {}
+      applyDescribedAttributeChanges(node.attributes, attributes)
     }
     if (description.childNodes != null) {
       setChildNodesFromDescriptions(node, description.childNodes)
